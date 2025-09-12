@@ -27,5 +27,18 @@
   },
   "triggers": {
     "onAppInstall": "/internal/on-app-install"
+  },
+  "permissions": {
+    "redis": true
+  },
+  "jobs": {
+    "daily-results-processor": {
+      "cron": "0 0 * * *",
+      "endpoint": "/internal/jobs/daily-results"
+    },
+    "weekly-cleanup": {
+      "cron": "0 2 * * 0",
+      "endpoint": "/internal/jobs/weekly-cleanup"
+    }
   }
 }
