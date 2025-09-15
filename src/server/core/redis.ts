@@ -115,6 +115,18 @@ export class GameRedis {
     });
   }
 
+  async getCurrentQuestion(): Promise<Question | null> {
+    const questionId = await this.getTodayQuestionId();
+    if (!questionId) return null;
+    return this.getQuestion(questionId);
+  }
+
+  async getYesterdayQuestion(): Promise<Question | null> {
+    const questionId = await this.getYesterdayQuestionId();
+    if (!questionId) return null;
+    return this.getQuestion(questionId);
+  }
+
   // ===== VOTE OPERATIONS =====
 
   async addVote(vote: Vote): Promise<void> {
