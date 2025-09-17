@@ -6,14 +6,16 @@ export type Question = {
   text: string;
   date: string;
   totalVotes: number;
-  averageVote: number; // -50 to 50 scale
+  averageVote: number; // -10 to 10 scale
   isActive: boolean; // true = voting open, false = closed
+  submittedBy?: string; // Username who submitted the question
+  closingDate?: string; // ISO date string when voting closes (optional for backward compatibility)
 };
 
 export type Vote = {
   userId: string;
   questionId: string;
-  value: number; // -50 to 50 scale
+  value: number; // -10 to 10 scale
   timestamp: string;
 };
 
@@ -21,7 +23,7 @@ export type Vote = {
 export type PredictionInput = {
   userId: string;
   questionId: string;
-  predictedAverage: number; // -50 to 50 scale
+  predictedAverage: number; // -10 to 10 scale
   timestamp: string;
 };
 
@@ -29,8 +31,8 @@ export type PredictionInput = {
 export type PredictionResult = {
   userId: string;
   questionId: string;
-  predictedAverage: number; // -50 to 50 scale
-  actualAverage: number; // -50 to 50 scale
+  predictedAverage: number; // -10 to 10 scale
+  actualAverage: number; // -10 to 10 scale
   isCorrect: boolean; // within some threshold
   accuracy: number; // distance from actual result
   timestamp: string;
@@ -52,13 +54,34 @@ export type UserStats = {
 };
 
 export type VoteDistribution = {
-  value: number; // -50 to 50 scale
+  value: number; // -10 to 10 scale
   count: number; // number of votes at this value
 };
 
 // Complete histogram for charting (all buckets, even zero counts)
 export type VoteHistogram = {
-  buckets: VoteDistribution[]; // 101 buckets from -50 to 50
+  buckets: VoteDistribution[]; // 21 buckets from -10 to 10
   totalVotes: number;
   averageVote: number;
+};
+
+// Base game state shared between client and server
+export type BaseGameState = {
+  myVote: Vote | null;
+  myPrediction: PredictionResult | null;
+};
+
+// Form data types (re-exported from API types for consistency)
+export type VoteFormData = {
+  questionId: string;
+  value: number; // -10 to 10 scale
+};
+
+export type PredictionFormData = {
+  questionId: string;
+  predictedAverage: number; // -10 to 10 scale
+};
+
+export type QuestionSubmissionFormData = {
+  questionText: string;
 };

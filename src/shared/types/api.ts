@@ -11,17 +11,13 @@ import type {
 
 // ===== API ENDPOINTS =====
 export const API_ENDPOINTS = {
-  // Game state endpoints
-  CURRENT_QUESTION: '/api/current-question',
-  YESTERDAY_RESULTS: '/api/yesterday-results',
-  
   // Voting endpoints
   VOTE: '/api/vote',
-  MY_VOTE: '/api/my-vote',
+  MY_VOTE: '/api/my-vote', // Requires :questionId parameter
   
   // Prediction endpoints
   PREDICT: '/api/predict',
-  MY_PREDICTION: '/api/my-prediction',
+  MY_PREDICTION: '/api/my-prediction', // Requires :questionId parameter
   
   // Question submission
   SUBMIT_QUESTION: '/api/submit-question',
@@ -31,27 +27,13 @@ export const API_ENDPOINTS = {
   MY_STATS: '/api/my-stats',
   QUESTION_DETAILS: '/api/question-details',
   
-  // Admin endpoints (for selecting tomorrow's question)
+  // Question management
   QUESTIONS: '/api/questions',
-  SELECT_QUESTION: '/api/select-question',
 } as const;
 
 // ===== REQUEST/RESPONSE TYPES =====
 
-// GET /api/current-question
-export type CurrentQuestionResponse = {
-  type: 'current_question';
-  question: Question | null;
-  myVote: Vote | null;
-};
-
-// GET /api/yesterday-results
-export type YesterdayResultsResponse = {
-  type: 'yesterday_results';
-  question: Question | null;
-  myPrediction: PredictionResult | null;
-  myVote: Vote | null;
-};
+// Removed current-question and yesterday-results endpoints - no longer using daily questions
 
 // GET /api/my-vote
 export type MyVoteResponse = {
@@ -70,7 +52,7 @@ export type MyPredictionResponse = {
 // POST /api/vote
 export type VoteRequest = {
   questionId: string;
-  value: number; // -50 to 50 scale
+  value: number; // -10 to 10 scale
 };
 
 export type VoteResponse = {
@@ -84,7 +66,7 @@ export type VoteResponse = {
 // POST /api/predict
 export type PredictRequest = {
   questionId: string;
-  predictedAverage: number; // -50 to 50 scale
+  predictedAverage: number; // -10 to 10 scale
 };
 
 export type PredictResponse = {
@@ -156,24 +138,8 @@ export type QuestionDetailsResponse = {
 // GET /api/questions
 export type QuestionsResponse = {
   type: 'questions';
-  submittedQuestions: Array<{
-    id: string;
-    text: string;
-    submittedBy: string;
-    submittedAt: string;
-    upvotes: number;
-  }>;
+  submittedQuestions: Question[];
   message?: string;
 };
 
-// POST /api/select-question
-export type SelectQuestionRequest = {
-  questionId: string;
-};
-
-export type SelectQuestionResponse = {
-  type: 'select_question';
-  success: boolean;
-  selectedQuestion: Question;
-  message?: string;
-};
+// Removed select-question endpoints - questions are now user-submitted

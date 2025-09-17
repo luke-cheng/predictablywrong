@@ -1,18 +1,18 @@
 // Server-specific database and Redis types
 // These are internal to the server and not shared with client
 
-import type { Question, Vote, PredictionResult, VoteDistribution } from '../../shared/types/core';
+import type { Question, VoteDistribution, BaseGameState, UserStats } from '../../shared/types/core';
 
 // Redis key patterns for server use
 export const REDIS_KEYS = {
   QUESTION_METADATA: (id: string) => `question:${id}:metadata`,
   QUESTION_VOTES: (id: string) => `question:${id}:votes`,
   QUESTION_PREDICTIONS: (id: string) => `question:${id}:predictions`,
-  TODAY_QUESTION_ID: 'question:today:id',
-  YESTERDAY_QUESTION_ID: 'question:yesterday:id',
   USER_HISTORY: (userId: string) => `user:${userId}:history`,
   USER_VOTES: (userId: string) => `user:${userId}:votes`,
   USER_PREDICTIONS: (userId: string) => `user:${userId}:predictions`,
+  ALL_QUESTIONS: () => `questions:all`, // Hash of all question IDs
+  QUESTION_CLOSING_SCHEDULE: () => `questions:closing-schedule`, // Sorted set: question ID -> closing timestamp
 } as const;
 
 // Global TTLs (in seconds)
@@ -34,12 +34,8 @@ export type QuestionWithStats = Question & {
   predictionDistribution: VoteDistribution[];
 };
 
-export type UserGameState = {
-  currentQuestion: Question | null;
-  yesterdayQuestion: Question | null;
-  userVote: Vote | null;
-  userPrediction: PredictionResult | null;
-  userStats: import('../../shared/types/core').UserStats;
+export type UserGameState = BaseGameState & {
+  userStats: UserStats;
   historicalQuestions: Question[];
 };
 

@@ -9,37 +9,43 @@ The server is a Node.js backend built on Devvit's serverless platform that provi
 - Redis-based data persistence
 - User authentication via Reddit
 - Real-time vote and prediction processing
+- User-submitted question management
 
 ## Architecture
 
 ```
 src/server/
-├── index.ts          # Main server file with API endpoints
+├── index.ts          # Main server file and entry point
 ├── core/             # Core business logic
-│   ├── redis.ts      # Redis database operations
-│   └── post.ts       # Reddit post creation
+│   └── redis.ts      # Redis database operations
+├── routes/           # API route handlers
+│   ├── api.ts        # Public API endpoints
+│   ├── internal.ts   # Internal/cron job endpoints
+│   ├── test.ts       # Test data management endpoints
+│   ├── menu.ts       # Menu action handlers
+│   └── index.ts      # Route exports
 ├── types/            # Server-specific types
-│   └── database.ts   # Database and Redis types
+│   └── database.ts   # Database types and Redis key patterns
 └── README.md         # This file
 ```
 
 ## Database Structure
 
-The application uses Redis as the primary database. All data is stored using structured key patterns for efficient querying and management.
+The application uses Redis because it is the only database option available under the Devvit framework. All data is stored using structured key patterns, as this is the only way to organize data in Redis.
 
 ### Redis Key Patterns
 
+All Redis key patterns are centrally defined in `types/database.ts` as `REDIS_KEYS`:
+
 ```typescript
-// Question data
-question:{id}:metadata     // Question details (text, date, stats)
-question:{id}:votes        // Hash of user votes for this question
-question:{id}:predictions  // Hash of user predictions for this question
+// Question data (using Reddit post IDs as question IDs)
+question:{postId}:metadata     // Question details (text, date, stats, submittedBy)
+question:{postId}:votes        // Hash of user votes for this question
+question:{postId}:predictions  // Hash of user predictions for this question
 
-// Current state
-question:today:id          // ID of today's active question
-question:yesterday:id      // ID of yesterday's question
+// User data 
+// Note that it has overlaps with question metadata, but we do not have access to a database besides Redis.
 
-// User data
 user:{userId}:history      // Sorted set of question IDs by timestamp
 user:{userId}:votes        // Hash of user's votes by question ID
 user:{userId}:predictions  // Hash of user's predictions by question ID
@@ -48,15 +54,16 @@ user:{userId}:predictions  // Hash of user's predictions by question ID
 ### Data Models
 
 #### Question Metadata
-Stored in `question:{id}:metadata` as a Redis hash:
+Stored in `question:{postId}:metadata` as a Redis hash:
 ```typescript
 {
-  id: string;           // Question ID
+  id: string;           // Question ID (Reddit post ID)
   text: string;         // Question text
   date: string;         // ISO date string
   totalVotes: string;   // Number of votes (Redis stores as string)
   voteSum: string;      // Sum of all votes (for average calculation)
   isActive: string;     // '1' for active, '0' for closed
+  submittedBy: string;  // Username who submitted the question
 }
 ```
 
@@ -64,7 +71,7 @@ Stored in `question:{id}:metadata` as a Redis hash:
 Stored in `question:{id}:votes` as a Redis hash:
 ```typescript
 {
-  [userId]: string;     // Vote value (-50 to 50) as string
+  [userId]: string;     // Vote value (-10 to 10) as string
 }
 ```
 
@@ -72,7 +79,7 @@ Stored in `question:{id}:votes` as a Redis hash:
 Stored in `question:{id}:predictions` as a Redis hash:
 ```typescript
 {
-  [userId]: string;     // Predicted average (-50 to 50) as string
+  [userId]: string;     // Predicted average (-10 to 10) as string
 }
 ```
 
@@ -82,6 +89,16 @@ Stored in `user:{userId}:history` as a Redis sorted set:
 {
   member: string;       // Question ID
   score: number;        // Timestamp in milliseconds
+}
+```
+
+#### Vote Histogram
+Generated on-demand for API responses:
+```typescript
+{
+  buckets: VoteDistribution[];  // 21 buckets from -10 to 10
+  totalVotes: number;           // Total number of votes
+  averageVote: number;         // Calculated average vote
 }
 ```
 
@@ -103,6 +120,7 @@ The `GameRedis` class in `core/redis.ts` provides a high-level interface for all
 - `getUserVote(userId, questionId)` - Get user's vote for a question
 - `getQuestionVotes(questionId)` - Get all votes for a question
 - `getVoteDistribution(questionId)` - Get vote distribution for charts
+- `getVoteHistogram(questionId)` - Get complete vote histogram with all buckets (-10 to 10)
 
 #### Prediction Operations
 - `addPrediction(prediction)` - Add a user prediction
@@ -117,6 +135,8 @@ The `GameRedis` class in `core/redis.ts` provides a high-level interface for all
 #### State Management
 - `setTodayQuestionId(id)` - Set current day's question
 - `setYesterdayQuestionId(id)` - Set previous day's question
+- `getTodayQuestionId()` - Get today's question ID
+- `getYesterdayQuestionId()` - Get yesterday's question ID
 - `getCurrentQuestion()` - Get today's active question
 - `getYesterdayQuestion()` - Get yesterday's question
 
@@ -137,42 +157,63 @@ await txn.zAdd(KEYS.USER_HISTORY(vote.userId), {
 await txn.exec();
 ```
 
+## Route Organization
+
+The server endpoints are organized into separate files for better maintainability:
+
+### Public API Routes (`routes/api.ts`)
+- Voting endpoints (`/api/vote`, `/api/my-vote/:questionId`)
+- Prediction endpoints (`/api/predict`, `/api/my-prediction/:questionId`)
+- User data endpoints (`/api/my-history`, `/api/my-stats`, `/api/question-details/:questionId`)
+- Question management (`/api/questions`)
+
+### Menu Routes (`routes/menu.ts`)
+- Question submission (`/internal/menu/submit-question`)
+- Form handling (`/internal/form/question-submit`)
+
+### Internal Routes (`routes/internal.ts`)
+- Cron job endpoints (`/internal/jobs/close-voting`, `/internal/jobs/weekly-cleanup`)
+- System maintenance and automation
+
+### Test Routes (`routes/test.ts`)
+- Test data management (`/api/test/reset-all`, `/api/test/reset-user/:userId`)
+- Development and testing utilities
+
 ## API Endpoints
 
 The server implements all endpoints defined in the [shared API documentation](../shared/readme.md):
 
-### Game State
-- `GET /api/current-question` - Get current question and user vote
-- `GET /api/yesterday-results` - Get yesterday's results
-
 ### Voting
-- `GET /api/my-vote` - Get user's current vote
+- `GET /api/my-vote/:questionId` - Get user's vote for a specific question
 - `POST /api/vote` - Submit a vote
 
 ### Predictions
-- `GET /api/my-prediction` - Get user's current prediction
+- `GET /api/my-prediction/:questionId` - Get user's prediction for a specific question
 - `POST /api/predict` - Submit a prediction
 
 ### User Data
 - `GET /api/my-history` - Get user's history
 - `GET /api/my-stats` - Get user's statistics
-- `GET /api/question-details/:id` - Get question details
+- `GET /api/question-details/:questionId` - Get question details
 
-### Admin
-- `GET /api/questions` - Get submitted questions
-- `POST /api/select-question` - Select next day's question
+### Question Management
+- `GET /api/questions` - Get all submitted questions
+
+### Menu Actions
+- `POST /internal/menu/submit-question` - Show question submission form
+- `POST /internal/form/question-submit` - Process question submission
 
 ### Internal Jobs
-- `POST /internal/jobs/daily-results` - Process daily question selection
+- `POST /internal/jobs/close-voting` - Close voting on questions after 24 hours
 - `POST /internal/jobs/weekly-cleanup` - Clean up old data
 
 ## Data Lifecycle
 
 ### Question Lifecycle
-1. **Creation**: Questions are created via admin selection or user submission
-2. **Active Period**: Users can vote and make predictions
-3. **Closure**: Voting closes, final results are calculated
-4. **Archival**: Question becomes "yesterday's question" for result viewing
+1. **Creation**: Questions are created via user submission through menu action
+2. **Active Period**: Users can vote and make predictions (voting closes after 24 hours)
+3. **Closure**: Voting closes automatically, predictions remain open
+4. **Archival**: Question becomes available for result viewing
 
 ### User Data Lifecycle
 1. **Creation**: User data is created on first vote/prediction
@@ -224,9 +265,10 @@ try {
 ## Development
 
 ### Local Development
-The server runs on Devvit's platform and can be tested locally using their development tools.
 
-### Testing
+You can't run the server locally. Devvit runs the server on their platform to a dev subreddit.
+
+### Testing (TODO)
 - Unit tests for Redis operations
 - Integration tests for API endpoints
 - Load testing for vote processing
@@ -237,11 +279,3 @@ The server runs on Devvit's platform and can be tested locally using their devel
 - [Core Types](../shared/types/core.ts) - Shared data structures
 - [API Types](../shared/types/api.ts) - Request/response type definitions
 - [Devvit Documentation](https://developers.reddit.com/docs) - Platform-specific documentation
-
-## Future Enhancements
-
-- Implement question submission queue
-- Add real-time vote updates via WebSockets
-- Implement advanced analytics and insights
-- Add question categories and tags
-- Implement user reputation system

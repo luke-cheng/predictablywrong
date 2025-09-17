@@ -5,50 +5,38 @@ This document describes the API contract between the client (webview) and server
 ## Overview
 
 The Predictably Wrong game is a prediction game where users:
-1. Vote on questions using a -50 to +50 scale
-2. Predict what the average vote will be
-3. See how accurate their predictions are compared to the actual results
+1. Submit controversial questions via Reddit menu actions
+2. Vote on questions using a -10 to +10 scale
+3. Predict what the average vote will be
+4. See how accurate their predictions are compared to the actual results
 
 ## API Endpoints
 
-### Game State Endpoints
+### Question Management Endpoints
 
-#### GET `/api/current-question`
-Get the current active question and user's vote.
-
-**Response:**
-```typescript
-{
-  type: 'current_question';
-  question: Question | null;
-  myVote: Vote | null;
-}
-```
-
-#### GET `/api/yesterday-results`
-Get yesterday's question results and user's prediction/vote.
+#### GET `/api/questions`
+Get all submitted questions.
 
 **Response:**
 ```typescript
 {
-  type: 'yesterday_results';
-  question: Question | null;
-  myPrediction: PredictionResult | null;
-  myVote: Vote | null;
+  type: 'questions';
+  submittedQuestions: Question[];
+  message?: string;
 }
 ```
 
 ### Voting Endpoints
 
-#### GET `/api/my-vote`
-Get the current user's vote for the current question.
+#### GET `/api/my-vote/:questionId`
+Get the current user's vote for a specific question.
 
 **Response:**
 ```typescript
 {
   type: 'my_vote';
   vote: Vote | null;
-  question: Question | null;
+  question: Question;
 }
 ```
 
@@ -59,7 +47,7 @@ Submit a vote for a question.
 ```typescript
 {
   questionId: string;
-  value: number; // -50 to 50 scale
+  value: number; // -10 to 10 scale
 }
 ```
 
@@ -76,15 +64,15 @@ Submit a vote for a question.
 
 ### Prediction Endpoints
 
-#### GET `/api/my-prediction`
-Get the current user's prediction for the current question.
+#### GET `/api/my-prediction/:questionId`
+Get the current user's prediction for a specific question.
 
 **Response:**
 ```typescript
 {
   type: 'my_prediction';
   prediction: PredictionResult | null;
-  question: Question | null;
+  question: Question;
 }
 ```
 
@@ -95,7 +83,7 @@ Submit a prediction for a question.
 ```typescript
 {
   questionId: string;
-  predictedAverage: number; // -50 to 50 scale
+  predictedAverage: number; // -10 to 10 scale
 }
 ```
 
@@ -112,27 +100,15 @@ Submit a prediction for a question.
 }
 ```
 
-### Question Submission
+### Menu Actions
 
-#### POST `/api/submit-question`
-Submit a new question for consideration.
+Questions are submitted via Reddit menu actions, not direct API calls:
 
-**Request:**
-```typescript
-{
-  questionText: string;
-}
-```
+#### POST `/internal/menu/submit-question`
+Shows a form for question submission (triggered by menu action).
 
-**Response:**
-```typescript
-{
-  type: 'question_submission';
-  success: boolean;
-  questionId: string;
-  message?: string;
-}
-```
+#### POST `/internal/form/question-submit`
+Processes the submitted question form.
 
 ### User Data Endpoints
 
@@ -213,37 +189,26 @@ Get all submitted questions (admin only).
 }
 ```
 
-#### POST `/api/select-question`
-Select a question to be the next day's question (admin only).
+### Internal Jobs
 
-**Request:**
-```typescript
-{
-  questionId: string;
-}
-```
+#### POST `/internal/jobs/close-voting`
+Automatically closes voting on questions that have been active for 24+ hours.
 
-**Response:**
-```typescript
-{
-  type: 'select_question';
-  success: boolean;
-  selectedQuestion: Question;
-  message?: string;
-}
-```
+#### POST `/internal/jobs/weekly-cleanup`
+Cleans up old user data and expired questions.
 
 ## Data Types
 
 ### Question
 ```typescript
 {
-  id: string;
+  id: string;           // Reddit post ID used as question ID
   text: string;
   date: string;
   totalVotes: number;
-  averageVote: number; // -50 to 50 scale
-  isActive: boolean; // true = voting open, false = closed
+  averageVote: number; // -10 to 10 scale
+  isActive: boolean;   // true = voting open, false = closed
+  submittedBy?: string; // Username who submitted the question
 }
 ```
 
@@ -252,7 +217,7 @@ Select a question to be the next day's question (admin only).
 {
   userId: string;
   questionId: string;
-  value: number; // -50 to 50 scale
+  value: number; // -10 to 10 scale
   timestamp: string;
 }
 ```
@@ -262,8 +227,8 @@ Select a question to be the next day's question (admin only).
 {
   userId: string;
   questionId: string;
-  predictedAverage: number; // -50 to 50 scale
-  actualAverage: number; // -50 to 50 scale
+  predictedAverage: number; // -10 to 10 scale
+  actualAverage: number; // -10 to 10 scale
   isCorrect: boolean; // within some threshold
   accuracy: number; // distance from actual result
   timestamp: string;
@@ -288,7 +253,7 @@ Select a question to be the next day's question (admin only).
 ### VoteDistribution
 ```typescript
 {
-  value: number; // -50 to 50 scale
+  value: number; // -10 to 10 scale
   count: number; // number of votes at this value
 }
 ```
@@ -296,7 +261,7 @@ Select a question to be the next day's question (admin only).
 ### VoteHistogram
 ```typescript
 {
-  buckets: VoteDistribution[]; // 101 buckets from -50 to 50
+  buckets: VoteDistribution[]; // 101 buckets from -10 to 10
   totalVotes: number;
   averageVote: number;
 }
@@ -343,7 +308,7 @@ const data = await response.json();
 const voteResponse = await fetch('/api/vote', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ questionId: 'q123', value: 25 })
+  body: JSON.stringify({ questionId: 'q123', value: 5 })
 });
 ```
 

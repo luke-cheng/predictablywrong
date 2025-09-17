@@ -17,13 +17,16 @@
   "menu": {
     "items": [
       {
-        "label": "Create a new post",
-        "description": "predictablywrong",
+        "label": "Ask a Spicier Question",
+        "description": "Think you can do better? Prove it. Submit your own.",
         "location": "subreddit",
-        "forUserType": "moderator",
-        "endpoint": "/internal/menu/post-create"
+        "forUserType": "user",
+        "endpoint": "/internal/menu/question-form"
       }
     ]
+  },
+  "forms": {
+    "questionForm": "/internal/form/process-question"
   },
   "triggers": {
     "onAppInstall": "/internal/on-app-install"
@@ -32,9 +35,9 @@
     "redis": true
   },
   "jobs": {
-    "daily-results-processor": {
-      "cron": "0 0 * * *",
-      "endpoint": "/internal/jobs/daily-results"
+    "close-voting-processor": {
+      "cron": "0 * * * *",
+      "endpoint": "/internal/jobs/close-voting"
     },
     "weekly-cleanup": {
       "cron": "0 2 * * 0",
