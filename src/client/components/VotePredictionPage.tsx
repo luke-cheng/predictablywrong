@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, CheckCircle, Lock, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { context } from '@devvit/web/client';
 import { Slider } from './Slider';
 import { QuestionCard } from './QuestionCard';
@@ -13,16 +13,16 @@ interface VotePredictionPageProps {
   onShowResults: () => void;
 }
 
-export const VotePredictionPage: React.FC<VotePredictionPageProps> = ({
+export const VotePredictionPage = ({
   questionId,
   onBack,
   onShowResults,
-}) => {
+}: VotePredictionPageProps) => {
   const [userVote, setUserVote] = useState(0);
   const [userPrediction, setUserPrediction] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { questionDetails, myVote, myPrediction, loading, refetch } = useAppContext();
+  const { questionDetails, myVote, myPrediction, loading, refetch, isVotingOpen } = useAppContext();
   const { submitVote, loading: voteSubmitting } = useSubmitVote();
   const { submitPrediction, loading: predictionSubmitting } = useSubmitPrediction();
 
@@ -30,11 +30,10 @@ export const VotePredictionPage: React.FC<VotePredictionPageProps> = ({
   const hasVoted = myVote?.vote !== null;
   const hasPredicted = myPrediction?.prediction !== null;
   const question = questionDetails?.questionDetails?.question;
-  const isQuestionClosed = question ? !question.isActive : false;
   const isQuestionByCurrentUser = question?.submittedBy === context.userId;
 
   // Voting permissions
-  const canVote = !hasVoted && !isQuestionClosed && !isQuestionByCurrentUser;
+  const canVote = !hasVoted && isVotingOpen && !isQuestionByCurrentUser;
 
   // Prediction permissions
   const canPredict = !hasPredicted;
@@ -124,32 +123,10 @@ export const VotePredictionPage: React.FC<VotePredictionPageProps> = ({
           <span>Back</span>
         </button>
 
-        <div className="flex items-center space-x-4">
-          {isQuestionClosed && (
-            <div className="flex items-center space-x-2 text-orange-600 dark:text-orange-400">
-              <Lock className="w-5 h-5" />
-              <span className="text-sm font-medium">Voting Closed</span>
-            </div>
-          )}
-
-          {isQuestionByCurrentUser && (
-            <div className="flex items-center space-x-2 text-purple-600 dark:text-purple-400">
-              <User className="w-5 h-5" />
-              <span className="text-sm font-medium">Your Question</span>
-            </div>
-          )}
-
-          {hasVoted && (
-            <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
-              <CheckCircle className="w-5 h-5" />
-              <span className="text-sm font-medium">Voted</span>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Question */}
-      <QuestionCard question={question} showVotingStatus={false} />
+      <QuestionCard question={question} showVotingStatus={true} isVotingOpen={isVotingOpen} />
 
       {/* Sliders */}
       <div className="space-y-8">
@@ -157,7 +134,7 @@ export const VotePredictionPage: React.FC<VotePredictionPageProps> = ({
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <Slider
             value={userVote}
-            {...(hasVoted ? {} : { onChange: setUserVote })}
+            {...(canVote ? { onChange: setUserVote } : {})}
             label={
               hasVoted
                 ? 'Your Vote (Already Submitted)'
@@ -166,12 +143,11 @@ export const VotePredictionPage: React.FC<VotePredictionPageProps> = ({
                   : 'Voting Not Available'
             }
             className="mb-4"
-            disabled={!canVote}
-            locked={hasVoted}
+            locked={!canVote || hasVoted}
           />
           {!canVote && !hasVoted && (
             <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              {isQuestionClosed && 'Voting is closed, but you can still predict the average!'}
+              {!isVotingOpen && 'Voting is closed, but you can still predict the average!'}
               {isQuestionByCurrentUser && 'You cannot vote on your own question.'}
             </div>
           )}
@@ -181,15 +157,14 @@ export const VotePredictionPage: React.FC<VotePredictionPageProps> = ({
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <Slider
             value={userPrediction}
-            {...(hasPredicted ? {} : { onChange: setUserPrediction })}
+            {...(canPredict ? { onChange: setUserPrediction } : {})}
             label={
               hasPredicted
                 ? 'Your Prediction (Already Submitted)'
                 : 'What do you think the average will be?'
             }
             className="mb-4"
-            disabled={!canPredict}
-            locked={hasPredicted}
+            locked={!canPredict || hasPredicted}
           />
           {!canPredict && !hasPredicted && (
             <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">

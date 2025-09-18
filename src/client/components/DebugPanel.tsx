@@ -6,7 +6,7 @@ interface DebugPanelProps {
   questionId: string | null;
 }
 
-export const DebugPanel: React.FC<DebugPanelProps> = ({ questionId }) => {
+export const DebugPanel = ({ questionId }: DebugPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { questionDetails, myVote, myPrediction, myStats, myHistory, loading, error, refetch } = useAppContext();
 

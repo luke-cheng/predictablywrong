@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowLeft, BarChart3, Target, TrendingUp, RotateCcw } from 'lucide-react';
 import { useAppContext } from '../contexts/AppContext';
 
@@ -6,7 +5,7 @@ interface PersonalStatsPageProps {
   onBack: () => void;
 }
 
-export const PersonalStatsPage: React.FC<PersonalStatsPageProps> = ({ onBack }) => {
+export const PersonalStatsPage = ({ onBack }: PersonalStatsPageProps) => {
   const { myStats, myHistory, loading } = useAppContext();
 
   if (loading) {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { BarChart3, TrendingUp } from 'lucide-react';
 
 interface HomePageProps {
@@ -6,7 +5,7 @@ interface HomePageProps {
   onShowStats: () => void;
 }
 
-export const HomePage: React.FC<HomePageProps> = ({ onStartPlaying, onShowStats }) => {
+export const HomePage = ({ onStartPlaying, onShowStats }: HomePageProps) => {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6 relative">
       {/* Stats Button - Top Right */}

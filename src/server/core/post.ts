@@ -11,9 +11,9 @@ export const createPost = async () => {
     title: '🎯 Predictably Wrong - Test Your Prediction Skills!',
     splash: {
       appDisplayName: 'Predictably Wrong',
-      buttonLabel: 'Start Playing',
+      buttonLabel: 'Start Guessing',
       description: 'Vote on questions, predict what others think, and see how well you know the crowd!',
-      heading: '🎯 Predictably Wrong'
+      heading: ' Predictably Wrong'
     },
     postData: {
       gameType: 'prediction',

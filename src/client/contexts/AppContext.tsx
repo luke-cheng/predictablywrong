@@ -16,6 +16,7 @@ type AppData = {
   myHistory: MyHistoryResponse | null;
   loading: boolean;
   error: string | null;
+  isVotingOpen: boolean;
 };
 
 type AppContextType = AppData & {
@@ -36,7 +37,7 @@ interface AppProviderProps {
   children: React.ReactNode;
 }
 
-export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
+export const AppProvider = ({ children }: AppProviderProps) => {
   const [questionDetails, setQuestionDetails] = useState<QuestionDetailsResponse | null>(null);
   const [myVote, setMyVote] = useState<MyVoteResponse | null>(null);
   const [myPrediction, setMyPrediction] = useState<MyPredictionResponse | null>(null);
@@ -44,6 +45,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [myHistory, setMyHistory] = useState<MyHistoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isVotingOpen, setIsVotingOpen] = useState(false);
 
   const fetchAllData = async () => {
     const questionId = context.postId;
@@ -70,6 +72,37 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       setMyPrediction(myPredictionRes);
       setMyStats(myStatsRes);
       setMyHistory(myHistoryRes);
+
+      // Calculate voting status with error logging
+      const question = questionDetailsRes?.questionDetails?.question;
+      if (question) {
+        let votingOpen = false;
+        
+        if (!question.isActive) {
+          // Question is marked as inactive by backend, log error but don't show to user
+          console.error('Question is marked as inactive but still showing in app:', question.id);
+          votingOpen = false;
+        } else {
+          // Question is active, check closing date - defaults to false if backend failed to close data
+          votingOpen = question.closingDate ? new Date(question.closingDate) > new Date() : false;
+          
+          // Log error if question is active but closing date is in the past
+          if (question.closingDate && new Date(question.closingDate) <= new Date()) {
+            console.error(
+              `Question has passed closing date but isActive field is still true: ${question.id}`,
+              {
+                closingDate: question.closingDate,
+                isActive: question.isActive,
+                currentTime: new Date().toISOString()
+              }
+            );
+          }
+        }
+        
+        setIsVotingOpen(votingOpen);
+      } else {
+        setIsVotingOpen(false);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       console.error('Error fetching app data:', err);
@@ -90,6 +123,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     myHistory,
     loading,
     error,
+    isVotingOpen,
     refetch: fetchAllData
   };
 

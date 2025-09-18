@@ -113,7 +113,7 @@ export function createMenuRoutes(gameRedis: GameRedis): express.Router {
         subredditName: subredditName,
         splash: {
           appDisplayName: 'Predictably Wrong',
-          buttonLabel: 'Start Playing',
+          buttonLabel: 'Start Guessing',
           description:
             'Predict what others think, and see how well you know the crowd!',
           heading: '🎯 Predictably Wrong',
