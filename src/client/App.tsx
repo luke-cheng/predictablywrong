@@ -62,7 +62,7 @@ const AppContent = () => {
   return (
     <>
       {/* Debug Panel */}
-      <DebugPanel questionId={currentQuestionId} />
+      {/* <DebugPanel questionId={currentQuestionId} /> */}
       
       {/* Main Content */}
       {currentPage === 'home' && (

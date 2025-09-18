@@ -30,14 +30,14 @@ export function createMenuRoutes(gameRedis: GameRedis): express.Router {
               {
                 type: 'string',
                 name: 'questionText',
-                label: 'Enter your controversial question here...',
-                placeholder: 'Enter your controversial question here...',
+                label: 'Propose a statement for community voting',
+                placeholder: 'Pineapple belongs on pizza.',
                 required: true,
               },
               {
                 type: 'number',
                 name: 'ttlHours',
-                label: 'How many hours before the question closes?',
+                label: 'How many hours do you want the question to be open?',
                 defaultValue: 24,
               },
             ],

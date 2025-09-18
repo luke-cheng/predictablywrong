@@ -17,8 +17,8 @@
   "menu": {
     "items": [
       {
-        "label": "Ask a Spicier Question",
-        "description": "Think you can do better? Prove it. Submit your own.",
+        "label": "Got a Spicyer One?",
+        "description": "Click here to submit your own.",
         "location": "subreddit",
         "forUserType": "user",
         "endpoint": "/internal/menu/question-form"

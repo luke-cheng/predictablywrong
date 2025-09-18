@@ -107,7 +107,7 @@ export const ResultsPage = ({ onBack }: ResultsPageProps) => {
           {myVote !== null && (
             <Slider
               value={myVote}
-              label={myVote ? 'You Voted' : 'Your Opinion'}
+              label={'My Opinion'}
               locked={true}
               className="mb-4"
             />
@@ -117,7 +117,7 @@ export const ResultsPage = ({ onBack }: ResultsPageProps) => {
           {myPrediction !== null && (
             <Slider
               value={myPrediction}
-              label={myPrediction ? 'You Predicted' : 'Your Prediction'}
+              label={'My Prediction'}
               locked={true}
               className="mb-4"
             />
@@ -139,9 +139,12 @@ export const ResultsPage = ({ onBack }: ResultsPageProps) => {
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData}>
-                    <XAxis type="number" dataKey="value" />
+                    <XAxis type="number" dataKey="value"
+                    domain={[-10, 10]}
+                    interval="preserveStartEnd"
+                    />
                     <Tooltip
-                      formatter={(_, __, item) => [`Count: ${item?.payload?.count ?? ''}`]}
+                      formatter={(_, __, item) => [`${item?.payload?.count ?? ''} votes`]}
                       labelFormatter={() => ''}
                     />
                     <Bar dataKey="count" fill="#3b82f6" />
@@ -150,7 +153,7 @@ export const ResultsPage = ({ onBack }: ResultsPageProps) => {
                       <ReferenceLine
                         ifOverflow="visible"
                         x={question.averageVote}
-                        label={{ value: 'Average', position: 'insideTop', offset: 20 }}
+                        label={{ value: 'Avg', position: 'insideTop', offset: 20 }}
                         stroke="orange"
                         strokeWidth={2}
                         strokeDasharray="8 4"
@@ -163,11 +166,21 @@ export const ResultsPage = ({ onBack }: ResultsPageProps) => {
                         label={{
                           value: 'My Prediction',
                           position: 'bottom', // Offsets the label below the dot
-                          offset: 10, // Further offset the label down (in px)
+                          offset: 12, // Further offset the label down (in px)
                         }}
                         x={myPrediction}
                         y={0}
-                        fill="cyan"
+                        shape={(props) => {
+                          const { cx, cy } = props;
+                          return (
+                            <polygon
+                              points={`${cx},${cy - 6} ${cx - 6},${cy + 6} ${cx + 6},${cy + 6}`}
+                              fill="red"
+                              stroke="red"
+                              strokeWidth={2}
+                            />
+                          );
+                        }}
                       />
                     )}
                   </BarChart>
