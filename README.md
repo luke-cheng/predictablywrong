@@ -1,6 +1,6 @@
 # Predictably Wrong
 
-A Reddit game where you vote on questions and predict what the average Redditor will think about them.
+A Reddit game where you share your opinion on questions and predict what the average Redditor will think about them.
 
 ## 🎯 What is This?
 
@@ -15,8 +15,8 @@ The concept is simple: **predict what the average Redditor will think** about va
 ### Step-by-Step Guide
 
 1. **Submit Questions**: Click the three dots in the top right corner of any post and select "Submit Question" to add your own questions
-2. **Vote & Predict**: Cast your honest vote AND predict what the average will be
-3. **Wait for Results**: Let others vote and make their predictions
+2. **Share Opinion & Predict**: Share your honest opinion AND predict what the average will be
+3. **Wait for Results**: Let others share their opinions and make their predictions
 4. **Check Your Accuracy**: Return later to see how well you predicted the crowd's opinion
 
 ### Where to Play

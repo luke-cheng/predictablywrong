@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle, User } from 'lucide-react';
 import { context } from '@devvit/web/client';
 import { Slider } from './Slider';
 import { QuestionCard } from './QuestionCard';
@@ -137,18 +137,29 @@ export const VotePredictionPage = ({
             {...(canVote ? { onChange: setUserVote } : {})}
             label={
               hasVoted
-                ? 'Your Vote (Already Submitted)'
+                ? 'Your Opinion (Already Submitted)'
                 : canVote
-                  ? "What's your opinion?"
-                  : 'Voting Not Available'
+                  ? "What do you think?"
+                  : 'Opinion Gathering is Closed'
             }
             className="mb-4"
             locked={!canVote || hasVoted}
           />
           {!canVote && !hasVoted && (
-            <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              {!isVotingOpen && 'Voting is closed, but you can still predict the average!'}
-              {isQuestionByCurrentUser && 'You cannot vote on your own question.'}
+            <div className="flex items-center space-x-2 mt-2">
+              {!isVotingOpen && (
+                <div className="flex items-center space-x-2 text-green-500 dark:text-green-400">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="text-sm font-medium">
+                    But you can still predict the average!</span>
+                </div>
+              )}
+              {isQuestionByCurrentUser && (
+                <div className="flex items-center space-x-2 text-blue-500 dark:text-blue-400">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">You cannot vote on your own question.</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -161,14 +172,17 @@ export const VotePredictionPage = ({
             label={
               hasPredicted
                 ? 'Your Prediction (Already Submitted)'
-                : 'What do you think the average will be?'
+                : 'Predict the average opinion'
             }
             className="mb-4"
             locked={!canPredict || hasPredicted}
           />
           {!canPredict && !hasPredicted && (
-            <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              You have already made a prediction for this question.
+            <div className="flex items-center space-x-2 mt-2">
+              <div className="flex items-center space-x-2 text-blue-500 dark:text-blue-400">
+                <CheckCircle className="w-4 h-4" />
+                <span className="text-sm font-medium">You have already made a prediction for this question.</span>
+              </div>
             </div>
           )}
         </div>

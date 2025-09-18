@@ -11,6 +11,7 @@ export const REDIS_KEYS = {
   USER_HISTORY: (userId: string) => `user:${userId}:history`,
   USER_VOTES: (userId: string) => `user:${userId}:votes`,
   USER_PREDICTIONS: (userId: string) => `user:${userId}:predictions`,
+  USER_QUESTIONS_SUBMITTED: (userId: string) => `user:${userId}:questions-submitted`, // Hash of user's submitted questions
   ALL_QUESTIONS: () => `questions:all`, // Hash of all question IDs
   QUESTION_CLOSING_SCHEDULE: () => `questions:closing-schedule`, // Sorted set: question ID -> closing timestamp
 } as const;

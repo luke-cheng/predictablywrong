@@ -8,7 +8,7 @@ The server is a Node.js backend built on Devvit's serverless platform that provi
 - RESTful API endpoints for the game
 - Redis-based data persistence
 - User authentication via Reddit
-- Real-time vote and prediction processing
+- Real-time opinion and prediction processing
 - User-submitted question management
 
 ## Architecture
@@ -40,14 +40,14 @@ All Redis key patterns are centrally defined in `types/database.ts` as `REDIS_KE
 ```typescript
 // Question data (using Reddit post IDs as question IDs)
 question:{postId}:metadata     // Question details (text, date, stats, submittedBy)
-question:{postId}:votes        // Hash of user votes for this question
+question:{postId}:votes        // Hash of user opinions for this question
 question:{postId}:predictions  // Hash of user predictions for this question
 
 // User data 
 // Note that it has overlaps with question metadata, but we do not have access to a database besides Redis.
 
 user:{userId}:history      // Sorted set of question IDs by timestamp
-user:{userId}:votes        // Hash of user's votes by question ID
+user:{userId}:votes        // Hash of user's opinions by question ID
 user:{userId}:predictions  // Hash of user's predictions by question ID
 ```
 
@@ -60,18 +60,18 @@ Stored in `question:{postId}:metadata` as a Redis hash:
   id: string;           // Question ID (Reddit post ID)
   text: string;         // Question text
   date: string;         // ISO date string
-  totalVotes: string;   // Number of votes (Redis stores as string)
-  voteSum: string;      // Sum of all votes (for average calculation)
+  totalVotes: string;   // Number of opinions (Redis stores as string)
+  voteSum: string;      // Sum of all opinions (for average calculation)
   isActive: string;     // '1' for active, '0' for closed
   submittedBy: string;  // Username who submitted the question
 }
 ```
 
-#### Vote Data
+#### Opinion Data
 Stored in `question:{id}:votes` as a Redis hash:
 ```typescript
 {
-  [userId]: string;     // Vote value (-10 to 10) as string
+  [userId]: string;     // Opinion value (-10 to 10) as string
 }
 ```
 
@@ -92,13 +92,13 @@ Stored in `user:{userId}:history` as a Redis sorted set:
 }
 ```
 
-#### Vote Histogram
+#### Opinion Histogram
 Generated on-demand for API responses:
 ```typescript
 {
   buckets: VoteDistribution[];  // 21 buckets from -10 to 10
-  totalVotes: number;           // Total number of votes
-  averageVote: number;         // Calculated average vote
+  totalVotes: number;           // Total number of opinions
+  averageVote: number;         // Calculated average opinion
 }
 ```
 
@@ -115,12 +115,12 @@ The `GameRedis` class in `core/redis.ts` provides a high-level interface for all
 - `deleteQuestion(id)` - Remove question and all related data
 - `setQuestionActive(id, isActive)` - Update question status
 
-#### Vote Operations
-- `addVote(vote)` - Add a user vote (updates question stats)
-- `getUserVote(userId, questionId)` - Get user's vote for a question
-- `getQuestionVotes(questionId)` - Get all votes for a question
-- `getVoteDistribution(questionId)` - Get vote distribution for charts
-- `getVoteHistogram(questionId)` - Get complete vote histogram with all buckets (-10 to 10)
+#### Opinion Operations
+- `addVote(vote)` - Add a user opinion (updates question stats)
+- `getUserVote(userId, questionId)` - Get user's opinion for a question
+- `getQuestionVotes(questionId)` - Get all opinions for a question
+- `getVoteDistribution(questionId)` - Get opinion distribution for charts
+- `getVoteHistogram(questionId)` - Get complete opinion histogram with all buckets (-10 to 10)
 
 #### Prediction Operations
 - `addPrediction(prediction)` - Add a user prediction
@@ -145,7 +145,7 @@ The `GameRedis` class in `core/redis.ts` provides a high-level interface for all
 The Redis operations use transactions where necessary to ensure data consistency:
 
 ```typescript
-// Example: Adding a vote updates multiple keys atomically
+// Example: Adding an opinion updates multiple keys atomically
 const txn = await this.redis.watch(KEYS.QUESTION_VOTES(vote.questionId));
 await txn.multi();
 await txn.hSet(KEYS.QUESTION_VOTES(vote.questionId), { [vote.userId]: vote.value.toString() });
@@ -162,7 +162,7 @@ await txn.exec();
 The server endpoints are organized into separate files for better maintainability:
 
 ### Public API Routes (`routes/api.ts`)
-- Voting endpoints (`/api/vote`, `/api/my-vote/:questionId`)
+- Opinion endpoints (`/api/vote`, `/api/my-vote/:questionId`)
 - Prediction endpoints (`/api/predict`, `/api/my-prediction/:questionId`)
 - User data endpoints (`/api/my-history`, `/api/my-stats`, `/api/question-details/:questionId`)
 - Question management (`/api/questions`)
@@ -183,9 +183,9 @@ The server endpoints are organized into separate files for better maintainabilit
 
 The server implements all endpoints defined in the [shared API documentation](../shared/readme.md):
 
-### Voting
-- `GET /api/my-vote/:questionId` - Get user's vote for a specific question
-- `POST /api/vote` - Submit a vote
+### Opinions
+- `GET /api/my-vote/:questionId` - Get user's opinion for a specific question
+- `POST /api/vote` - Submit an opinion
 
 ### Predictions
 - `GET /api/my-prediction/:questionId` - Get user's prediction for a specific question
@@ -204,34 +204,34 @@ The server implements all endpoints defined in the [shared API documentation](..
 - `POST /internal/form/question-submit` - Process question submission
 
 ### Internal Jobs
-- `POST /internal/jobs/close-voting` - Close voting on questions after 24 hours
+- `POST /internal/jobs/close-voting` - Close opinion gathering on questions after 24 hours
 - `POST /internal/jobs/weekly-cleanup` - Clean up old data
 
 ## Data Lifecycle
 
 ### Question Lifecycle
 1. **Creation**: Questions are created via user submission through menu action
-2. **Active Period**: Users can vote and make predictions (voting closes after 24 hours)
-3. **Closure**: Voting closes automatically, predictions remain open
+2. **Active Period**: Users can share opinions and make predictions (opinion gathering closes after 24 hours)
+3. **Closure**: Opinion gathering closes automatically, predictions remain open
 4. **Archival**: Question becomes available for result viewing
 
 ### User Data Lifecycle
-1. **Creation**: User data is created on first vote/prediction
-2. **Updates**: Data is updated with each new vote/prediction
+1. **Creation**: User data is created on first opinion/prediction
+2. **Updates**: Data is updated with each new opinion/prediction
 3. **Expiration**: User data expires after 30 days (configurable)
 4. **Cleanup**: Weekly cleanup job removes expired data
 
 ## Performance Considerations
 
 ### Redis Optimizations
-- Use hash operations for efficient vote/prediction storage
+- Use hash operations for efficient opinion/prediction storage
 - Use sorted sets for chronological user history
 - Batch operations where possible
 - Set appropriate TTLs to prevent memory bloat
 
 ### Caching Strategy
 - Question metadata is cached in memory during active periods
-- Vote distributions are calculated on-demand
+- Opinion distributions are calculated on-demand
 - User stats are calculated on-demand (could be cached for active users)
 
 ## Error Handling

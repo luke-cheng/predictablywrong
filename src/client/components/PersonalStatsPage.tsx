@@ -50,7 +50,7 @@ export const PersonalStatsPage = ({ onBack }: PersonalStatsPageProps) => {
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
               <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Total Votes</span>
+              <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Total Opinions</span>
             </div>
             <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
               {stats.totalVotes}
@@ -97,7 +97,7 @@ export const PersonalStatsPage = ({ onBack }: PersonalStatsPageProps) => {
         
         {history.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-            No voting history yet. Start playing to see your stats!
+            No opinion history yet. Start playing to see your stats!
           </p>
         ) : (
           <div className="space-y-3">
@@ -138,11 +138,11 @@ export const PersonalStatsPage = ({ onBack }: PersonalStatsPageProps) => {
           className="flex items-center space-x-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
         >
           <RotateCcw className="w-4 h-4" />
-          <span className="text-sm">Reset All Votes</span>
+          <span className="text-sm">Reset All Stats</span>
         </button>
         
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-          This will delete all your voting history and start fresh. Use only for testing.
+          This will delete all your history and start fresh! Are you sure?
         </p>
       </div>
     </div>

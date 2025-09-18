@@ -34,6 +34,48 @@ export class GameRedis {
         score: closingTimestamp,
       });
     }
+
+    // Track question submission by user
+    if (question.submittedBy) {
+      await this.trackQuestionSubmission(question.submittedBy, question.id);
+    }
+  }
+
+  async trackQuestionSubmission(userId: string, questionId: string): Promise<void> {
+    // Add question to user's submitted questions hash
+    await this.redis.hSet(REDIS_KEYS.USER_QUESTIONS_SUBMITTED(userId), {
+      [questionId]: new Date().toISOString(), // Store timestamp when submitted
+    });
+    
+    // Set expiration for user data
+    await this.setUserDataExpiration(userId);
+  }
+
+  async getUserSubmittedQuestions(userId: string): Promise<string[]> {
+    const submittedQuestions = await this.redis.hGetAll(REDIS_KEYS.USER_QUESTIONS_SUBMITTED(userId));
+    return Object.keys(submittedQuestions);
+  }
+
+  // Helper method to populate question submissions for existing questions (backward compatibility)
+  async populateExistingQuestionSubmissions(): Promise<void> {
+    try {
+      const allQuestions = await this.redis.hGetAll(REDIS_KEYS.ALL_QUESTIONS());
+      const questionIds = Object.keys(allQuestions);
+      
+      for (const questionId of questionIds) {
+        const question = await this.getQuestion(questionId);
+        if (question && question.submittedBy) {
+          // Check if already tracked
+          const existing = await this.redis.hGet(REDIS_KEYS.USER_QUESTIONS_SUBMITTED(question.submittedBy), questionId);
+          if (!existing) {
+            await this.trackQuestionSubmission(question.submittedBy, questionId);
+            console.log(`Backfilled question submission: ${questionId} by ${question.submittedBy}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error populating existing question submissions:', error);
+    }
   }
 
   async getQuestion(id: string): Promise<Question | null> {
@@ -269,13 +311,15 @@ export class GameRedis {
     bestStreak: number;
     predictionAccuracy: number;
   }> {
-    const [userVotes, userPredictions] = await Promise.all([
+    const [userVotes, userPredictions, userQuestionsSubmitted] = await Promise.all([
       this.redis.hGetAll(REDIS_KEYS.USER_VOTES(userId)),
       this.redis.hGetAll(REDIS_KEYS.USER_PREDICTIONS(userId)),
+      this.redis.hGetAll(REDIS_KEYS.USER_QUESTIONS_SUBMITTED(userId)),
     ]);
 
     const totalVotes = Object.keys(userVotes).length;
     const totalPredictions = Object.keys(userPredictions).length;
+    const questionsSubmitted = Object.keys(userQuestionsSubmitted).length;
     
     // Calculate prediction accuracy
     let correctPredictions = 0;
@@ -307,7 +351,7 @@ export class GameRedis {
       totalVotes,
       correctPredictions,
       totalPredictions,
-      questionsSubmitted: 0, // TODO: Track question submissions
+      questionsSubmitted,
       questionsSelected: 0, // TODO: Track question selections
       averagePredictionAccuracy: totalPredictions > 0 ? totalAccuracy / totalPredictions : 0,
       currentStreak,

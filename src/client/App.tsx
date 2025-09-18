@@ -7,7 +7,7 @@ import { PersonalStatsPage } from './components/PersonalStatsPage';
 import { DebugPanel } from './components/DebugPanel';
 import { AppProvider, useAppContext } from './contexts/AppContext';
 
-type Page = 'home' | 'vote' | 'results' | 'stats';
+type Page = 'home' | 'opinion' | 'results' | 'stats';
 
 const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -38,7 +38,7 @@ const AppContent = () => {
   }, [questionDetails, myPrediction, loading]);
 
   const handleStartPlaying = () => {
-    setCurrentPage('vote');
+    setCurrentPage('opinion');
   };
 
   const handleShowStats = () => {
@@ -55,8 +55,8 @@ const AppContent = () => {
     setCurrentPage('home');
   };
 
-  const handleBackToVote = () => {
-    setCurrentPage('vote');
+  const handleBackToOpinion = () => {
+    setCurrentPage('opinion');
   };
 
   return (
@@ -72,7 +72,7 @@ const AppContent = () => {
         />
       )}
       
-      {currentPage === 'vote' && currentQuestionId && (
+      {currentPage === 'opinion' && currentQuestionId && (
         <VotePredictionPage
           questionId={currentQuestionId}
           onBack={handleBackToHome}
@@ -83,7 +83,7 @@ const AppContent = () => {
       {currentPage === 'results' && currentQuestionId && (
         <ResultsPage
           questionId={currentQuestionId}
-          onBack={handleBackToVote}
+          onBack={handleBackToOpinion}
         />
       )}
       

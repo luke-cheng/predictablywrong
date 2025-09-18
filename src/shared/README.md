@@ -6,8 +6,8 @@ This document describes the API contract between the client (webview) and server
 
 The Predictably Wrong game is a prediction game where users:
 1. Submit controversial questions via Reddit menu actions
-2. Vote on questions using a -10 to +10 scale
-3. Predict what the average vote will be
+2. Share their opinion on questions using a -10 to +10 scale
+3. Predict what the average opinion will be
 4. See how accurate their predictions are compared to the actual results
 
 ## API Endpoints
@@ -26,10 +26,10 @@ Get all submitted questions.
 }
 ```
 
-### Voting Endpoints
+### Opinion Endpoints
 
 #### GET `/api/my-vote/:questionId`
-Get the current user's vote for a specific question.
+Get the current user's opinion for a specific question.
 
 **Response:**
 ```typescript
@@ -41,7 +41,7 @@ Get the current user's vote for a specific question.
 ```
 
 #### POST `/api/vote`
-Submit a vote for a question.
+Submit an opinion for a question.
 
 **Request:**
 ```typescript
@@ -113,7 +113,7 @@ Processes the submitted question form.
 ### User Data Endpoints
 
 #### GET `/api/my-history`
-Get the user's voting and prediction history.
+Get the user's opinion and prediction history.
 
 **Query Parameters:**
 - `limit?: number` - Number of results to return
@@ -192,7 +192,7 @@ Get all submitted questions (admin only).
 ### Internal Jobs
 
 #### POST `/internal/jobs/close-voting`
-Automatically closes voting on questions that have been active for 24+ hours.
+Automatically closes opinion gathering on questions that have been active for 24+ hours.
 
 #### POST `/internal/jobs/weekly-cleanup`
 Cleans up old user data and expired questions.
@@ -207,12 +207,12 @@ Cleans up old user data and expired questions.
   date: string;
   totalVotes: number;
   averageVote: number; // -10 to 10 scale
-  isActive: boolean;   // true = voting open, false = closed
+  isActive: boolean;   // true = opinion gathering open, false = closed
   submittedBy?: string; // Username who submitted the question
 }
 ```
 
-### Vote
+### Opinion
 ```typescript
 {
   userId: string;
@@ -250,18 +250,18 @@ Cleans up old user data and expired questions.
 }
 ```
 
-### VoteDistribution
+### OpinionDistribution
 ```typescript
 {
   value: number; // -10 to 10 scale
-  count: number; // number of votes at this value
+  count: number; // number of opinions at this value
 }
 ```
 
-### VoteHistogram
+### OpinionHistogram
 ```typescript
 {
-  buckets: VoteDistribution[]; // 101 buckets from -10 to 10
+  buckets: OpinionDistribution[]; // 101 buckets from -10 to 10
   totalVotes: number;
   averageVote: number;
 }

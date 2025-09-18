@@ -76,7 +76,7 @@ export const ResultsPage = ({ onBack }: ResultsPageProps) => {
           {/* Short stats that can be shown with numbers */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Votes</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Opinions</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {question.totalVotes}
               </p>
@@ -134,7 +134,7 @@ export const ResultsPage = ({ onBack }: ResultsPageProps) => {
           {voteHistogram && chartData.length > 0 && (
             <>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Distribution of Votes
+                Distribution of Opinions
               </h2>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -144,7 +144,7 @@ export const ResultsPage = ({ onBack }: ResultsPageProps) => {
                     interval="preserveStartEnd"
                     />
                     <Tooltip
-                      formatter={(_, __, item) => [`${item?.payload?.count ?? ''} votes`]}
+                      formatter={(_, __, item) => [`${item?.payload?.count ?? ''} opinions`]}
                       labelFormatter={() => ''}
                     />
                     <Bar dataKey="count" fill="#3b82f6" />

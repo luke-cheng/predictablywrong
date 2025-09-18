@@ -55,5 +55,28 @@ export function createInternalRoutes(gameRedis: GameRedis): express.Router {
     }
   });
 
+  router.post('/internal/jobs/backfill-question-submissions', async (_req, res): Promise<void> => {
+    try {
+      // Step 1: Populate question submissions for existing questions
+      await gameRedis.populateExistingQuestionSubmissions();
+      
+      console.log('Question submission backfill completed at:', new Date().toISOString());
+      
+      // Step 2: Return success response
+      res.json({
+        status: 'success',
+        message: 'Question submission backfill completed',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Error in question submission backfill:', error);
+      res.status(500).json({
+        status: 'error',
+        message: 'Failed to perform question submission backfill',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
   return router;
 }
