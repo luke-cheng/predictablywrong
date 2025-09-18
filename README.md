@@ -1,26 +1,42 @@
 # Predictably Wrong
 
-**It's stupidly simple:** Try to predict what the **average Redditor** will think about a controversial or not-so-controversial question.
+A Reddit game where you vote on questions and predict what the average Redditor will think about them.
 
-**Can you prove your superiority?** Not by being "right," but by reading the average Redditor like an open book.
+## 🎯 What is This?
 
-**Don't like the questions?** _Create your own!_
+**Predictably Wrong** is a social prediction game that challenges you to understand the collective mindset of Reddit users. Can you predict what the average Redditor thinks about controversial (or not-so-controversial) questions?
 
-**How does it work?**
+## 🎮 How to Play
 
-1. **Submit** a controversial or not-so-controversial question by clicking the three dots in the top right corner of the post and selecting **Submit Question**.
-2. **Vote** on the question with your honest opinion **and** try to predict what the _average_ will think.
-3. **Others** can also vote and predict what the _average_ will think.
-4. ** later** to see how accurate your predictions were compared to the actual results.
+### Gameplay
 
-## Where to Play
+The concept is simple: **predict what the average Redditor will think** about various questions. It's not about being "right" - it's about understanding the crowd.
 
-> This is a submission to [Reddit Fun and Games](https://redditfunandgames.devpost.com/) hackathon. As the time of writing, it's not yet published.
+### Step-by-Step Guide
 
-It will be hosted on this public subreddit [r/predictablywrong](https://www.reddit.com/r/predictablywrong/) when published.
+1. **Submit Questions**: Click the three dots in the top right corner of any post and select "Submit Question" to add your own questions
+2. **Vote & Predict**: Cast your honest vote AND predict what the average will be
+3. **Wait for Results**: Let others vote and make their predictions
+4. **Check Your Accuracy**: Return later to see how well you predicted the crowd's opinion
 
-Or, you may request to join our testing subreddit [r/predictablywrong_dev](https://www.reddit.com/r/predictablywrong_dev/)
+### Where to Play
 
-## Project Story
+> **Note**: This is a submission to the [Reddit Fun and Games](https://redditfunandgames.devpost.com/) hackathon
 
-[About.md](./ABOUT.md)
+- **Public Subreddit**: [r/predictablywrong](https://www.reddit.com/r/predictablywrong/) (when published)
+- **Testing Subreddit**: [r/predictablywrong_dev](https://www.reddit.com/r/predictablywrong_dev/) (request access)
+
+## 📚 Documentation (for nerds)
+
+- **[About](./ABOUT.md)** - Project overview and details
+- **[API Documentation](./src/shared/README.md)** - Shared types and interfaces
+- **[Server Architecture](./src/server/README.md)** - Backend implementation details
+
+### Project Structure
+
+```
+src/
+├── client/     # Webview frontend
+├── server/     # Serverless backend
+└── shared/     # Shared types and utilities
+```

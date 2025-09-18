@@ -30,7 +30,7 @@ export function createMenuRoutes(gameRedis: GameRedis): express.Router {
               {
                 type: 'string',
                 name: 'questionText',
-                label: 'Propose a statement for community voting',
+                label: 'Propose your statement',
                 placeholder: 'Pineapple belongs on pizza.',
                 required: true,
               },
